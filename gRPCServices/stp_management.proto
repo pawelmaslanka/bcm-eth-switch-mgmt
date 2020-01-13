@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package OpenNos.Plugin.Stp;
+
+message StpInterface {
+    string ifname = 1;
+}
+
+message StpState {
+    StpInterface interface = 1;
+
+    enum State {
+        DISABLED = 0;
+        BLOCKING = 1;
+        LISTENING = 2;
+        LEARNING = 3;
+        FORWARDING = 4;
+    }
+
+    State state = 2;
+}
+
+message StpAgeingTime {
+    uint32 ageingTime = 1;
+}
+
+message StpResult {
+    enum Result {
+        FAILED = 0;
+        SUCCESS = 1;
+    }
+
+    Result result = 1;
+}
+
+service StpManagement {
+    rpc SetInterfaceState (StpState) returns (StpResult) {}
+    rpc FlushFdb (StpInterface) returns (StpResult) {}
+    rpc SetAgeingTime (StpAgeingTime) returns (StpResult) {}
+}

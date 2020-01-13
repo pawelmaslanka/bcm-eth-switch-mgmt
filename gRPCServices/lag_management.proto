@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package OpenNos.Plugin.Lag;
+
+message LagIface {
+    string name = 1;
+}
+
+message Port {
+    string name = 1;
+}
+
+message LagMembers {
+    LagIface iface = 1;
+    repeated Port members = 2;
+}
+
+message RpcResult {
+    enum Result {
+        FAILED = 0;
+        SUCCESS = 1;
+    }
+
+    Result result = 1;
+}
+
+service LagManagement {
+    rpc CreateLag (LagIface) returns (RpcResult) {}
+    rpc AddLagMembers (LagMembers) returns (RpcResult) {}
+}

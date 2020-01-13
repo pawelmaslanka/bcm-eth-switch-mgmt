@@ -1,0 +1,5 @@
+menuconfig BR2_PACKAGE_BCM_ETH_SWITCH_MGMT
+        bool "Broadcom Ethernet Switch Management"
+        default y
+        help
+          Broadcom Ethernet Switch Management.
