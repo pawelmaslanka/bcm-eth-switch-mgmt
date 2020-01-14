@@ -84,3 +84,11 @@ func (l2Port *L2Port) Create(prio int) error {
 
 	return nil
 }
+
+func (l2Port *L2Port) Port() opennsl.Port {
+	return l2Port.port
+}
+
+func (l2Port *L2Port) KnetIntfID() int {
+	return l2Port.knetNetIfaceID
+}
