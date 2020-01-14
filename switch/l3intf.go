@@ -1,7 +1,7 @@
 package bcm
 
 import (
-	"net"
+	"fmt"
 
 	"github.com/beluganos/go-opennsl/opennsl"
 )
@@ -48,35 +48,12 @@ func (l3Intf *L3Intf) setupKnetFilter(rxReason opennsl.RxReason, prio int, desc 
 	return nil
 }
 
-func (l3Intf *L3Intf) setupKnetFilter(rxReason opennsl.RxReason, prio int, desc string) error {
-	knetFilter := opennsl.NewKnetFilter()
-	knetFilter.SetDescription(desc)
-	knetFilter.SetType(opennsl.KNET_FILTER_T_RX_PKT)
-	knetFilter.SetFlags(opennsl.NewKnetFilterFlags(
-		opennsl.KNET_FILTER_F_STRIP_TAG,
-	))
-	knetFilter.SetMatchFlags(opennsl.NewKnetFilterMatchFlags(
-		opennsl.KNET_FILTER_M_REASON,
-	))
-	knetFilter.SetDestType(opennsl.KNET_DEST_T_NETIF)
-	knetFilter.SetDestID(l3Intf.knetIntfID)
-	knetFilter.SetPriority(prio)
-	knetFilter.SetRxReason(rxReason)
-	if err := knetFilter.Create(l3Intf.asic.unit); err != nil {
-		log.Errorf("Failed to create KNET filter: %s", err)
-		return err
-	}
-
-	l3Intf.knetFilters[desc] = knetFilter.ID()
-	return nil
-}
-
 func (l3Intf *L3Intf) Create(prio int) error {
-	if err := l3Intf.setupKnetFilter(opennsl.RxReasonNhop, prio, "Next Hop Packets %d", l3Intf.port); err != nil {
+	if err := l3Intf.setupKnetFilter(opennsl.RxReasonNhop, prio, fmt.Sprintf("Next Hop Packets %d")); err != nil {
 		return err
 	}
 
-	if err := l3Intf.setupKnetFilter(opennsl.RxReasonProtocol, prio+1, fmt.Sprintf("Protocol Packets %d", l3Intf.port); err != nil {
+	if err := l3Intf.setupKnetFilter(opennsl.RxReasonProtocol, prio+1, fmt.Sprintf("Protocol Packets %d")); err != nil {
 		return err
 	}
 

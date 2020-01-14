@@ -50,7 +50,7 @@ func main() {
 	}
 
 	l2Ports := make(map[string]*bcm.L2Port)
-	l3Intf := make(map[string]*bcm.L3Intf)
+	l3Intfs := make(map[string]*bcm.L3Intf)
 	var idx uint16 = 0
 	// for _, namePortMap := range bcm.NamePortMap {
 	// 	fmt.Println("Port name:", namePortMap.PortName, "BCM Port:", namePortMap.Port)
@@ -78,11 +78,12 @@ func main() {
 		l2Ports[portNameMap.PortName] = l2Port
 
 		l3Intf := bcm.NewL3Intf(l2Port.Port(), l2Port.KnetIntfID())
-		if err := l3Intf.Create(70 + idx + 1); err != nil {
+		if err := l3Intf.Create(int(70 + int(idx) + 1)); err != nil {
 			log.Errorf("Failed to create L3 interface: %s", err)
 			return
 		}
 
+		l3Intfs[portNameMap.PortName] = l3Intf
 		idx++
 	}
 
