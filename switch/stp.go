@@ -34,7 +34,7 @@ func (stpMgmt *stpRequestMgmt) SetInterfaceState(ctx context.Context, state *pb.
 	if strings.Contains(ifname, "team") {
 		log.Printf("Requested set STP state on LAG %s", ifname)
 		var lag *LAG
-		if lag, exists = stpMgmt.sw.lagIfaces[ifname]; !exists {
+		if lag, exists = stpMgmt.sw.lagIntfs[ifname]; !exists {
 			errMsg := fmt.Sprintf("LAG %s does not exist", ifname)
 			log.Errorf(errMsg)
 			return &pb.StpResult{Result: pb.StpResult_FAILED}, fmt.Errorf(errMsg)
@@ -107,7 +107,7 @@ func (stpMgmt *stpRequestMgmt) FlushFdb(ctx context.Context, iface *pb.StpInterf
 	if strings.Contains(ifname, "team") {
 		log.Printf("Requested set STP state on LAG %s", ifname)
 		var lag *LAG
-		if lag, exists = stpMgmt.sw.lagIfaces[ifname]; !exists {
+		if lag, exists = stpMgmt.sw.lagIntfs[ifname]; !exists {
 			errMsg := fmt.Sprintf("LAG %s does not exist", ifname)
 			log.Errorf(errMsg)
 			return &pb.StpResult{Result: pb.StpResult_FAILED}, fmt.Errorf(errMsg)

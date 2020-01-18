@@ -35,9 +35,9 @@ type lagMgmtRequest struct {
 	sw *Switch
 }
 
-func (lagMgmt *lagMgmtRequest) CreateLag(ctx context.Context, req *pb.LagIface) (*pb.RpcResult, error) {
+func (lagMgmt *lagMgmtRequest) CreateLag(ctx context.Context, req *pb.LagIntf) (*pb.RpcResult, error) {
 	lagIfname := req.GetName()
-	if _, ok := lagMgmt.sw.lagIfaces[lagIfname]; ok {
+	if _, ok := lagMgmt.sw.lagIntfs[lagIfname]; ok {
 		return &pb.RpcResult{Result: pb.RpcResult_SUCCESS}, nil
 	}
 
@@ -69,7 +69,7 @@ func (lagMgmt *lagMgmtRequest) CreateLag(ctx context.Context, req *pb.LagIface) 
 		return &pb.RpcResult{Result: pb.RpcResult_FAILED}, fmt.Errorf(errMsg)
 	}
 
-	lagMgmt.sw.lagIfaces[lagIfname] = NewLAG(trunk)
+	lagMgmt.sw.lagIntfs[lagIfname] = NewLAG(trunk)
 	return &pb.RpcResult{Result: pb.RpcResult_SUCCESS}, nil
 }
 
@@ -78,8 +78,8 @@ func (lagMgmt *lagMgmtRequest) CreateLag(ctx context.Context, req *pb.LagIface) 
 func (lagMgmt *lagMgmtRequest) AddLagMembers(ctx context.Context, req *pb.LagMembers) (*pb.RpcResult, error) {
 	var lag *LAG
 	var exists bool
-	lagIfname := req.GetIface().GetName()
-	if lag, exists = lagMgmt.sw.lagIfaces[lagIfname]; !exists {
+	lagIfname := req.GetIntf().GetName()
+	if lag, exists = lagMgmt.sw.lagIntfs[lagIfname]; !exists {
 		errMsg := fmt.Sprintf("LAG %s does not exist", lagIfname)
 		log.Errorf(errMsg)
 		return &pb.RpcResult{Result: pb.RpcResult_FAILED}, fmt.Errorf(errMsg)

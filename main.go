@@ -23,6 +23,7 @@ func watchSignal(done chan struct{}) {
 }
 
 func main() {
+	var activeSwitchingLayer3 bool = true
 	log.SetLevel(log.DebugLevel)
 	sw := bcm.NewSwitch()
 	if err := sw.Init(); err != nil {
@@ -37,54 +38,56 @@ func main() {
 		return
 	}
 
-	mgmtIface := bcm.NewMgmtIface(
-		"cpu-0",
-		opennsl.VLAN_ID_DEFAULT,
-		util.ParseMAC("00:11:22:33:44:00"),
-		net.ParseIP("10.1.1.4"),
-	)
-
-	if err := mgmtIface.Create(); err != nil {
-		log.Errorf("Failed to create BCM network switch management interface: %s", err)
+	if err := sal.DriverShell(); err != nil {
+		log.Errorf("Failed to exit from driver shell: %s", err)
 		return
 	}
 
-	l2Ports := make(map[string]*bcm.L2Port)
-	l3Intfs := make(map[string]*bcm.L3Intf)
-	var idx uint16 = 0
-	// for _, namePortMap := range bcm.NamePortMap {
-	// 	fmt.Println("Port name:", namePortMap.PortName, "BCM Port:", namePortMap.Port)
-	// 	portMac := fmt.Sprintf("00:11:22:33:%02x:fe", idx)
-	// 	macAddr := util.ParseMAC(portMac)
-	// 	l2Port := bcm.NewL2Port(namePortMap.PortName, namePortMap.Port, opennsl.VLAN_ID_DEFAULT, macAddr)
-	// 	if err := l2Port.Create(int(idx + 1)); err != nil {
-	// 		log.Errorf("Failed to create L2 port: %s", err)
-	// 		return
-	// 	}
+	if !activeSwitchingLayer3 {
+		mgmtIntf := bcm.NewMgmtIntf(
+			"cpu-0",
+			opennsl.VLAN_ID_DEFAULT,
+			util.ParseMAC("00:11:22:33:44:00"),
+			net.ParseIP("10.1.1.4"),
+		)
 
-	// 	l2Ports[namePortMap.PortName] = l2Port
-	// 	idx++
-	// }
-	for _, portNameMap := range bcm.PortNames {
-		fmt.Println("Key:", portNameMap.Port, "Value:", portNameMap.PortName)
-		portMac := fmt.Sprintf("00:11:22:33:%02x:fe", idx)
-		macAddr := util.ParseMAC(portMac)
-		l2Port := bcm.NewL2Port(portNameMap.PortName, portNameMap.Port, opennsl.VLAN_ID_NONE, macAddr)
-		if err := l2Port.Create(int(idx + 1)); err != nil {
-			log.Errorf("Failed to create L2 port: %s", err)
+		if err := mgmtIntf.Create(); err != nil {
+			log.Errorf("Failed to create BCM network switch management interface: %s", err)
 			return
 		}
 
-		l2Ports[portNameMap.PortName] = l2Port
-
-		l3Intf := bcm.NewL3Intf(l2Port.Port(), l2Port.KnetIntfID())
-		if err := l3Intf.Create(int(70 + int(idx) + 1)); err != nil {
-			log.Errorf("Failed to create L3 interface: %s", err)
-			return
+		l2Ports := make(map[string]*bcm.L2Port)
+		var idx uint16 = 0
+		for _, portNameMap := range bcm.PortNames {
+			fmt.Println("Key:", portNameMap.Port, "Value:", portNameMap.PortName)
+			portMac := fmt.Sprintf("00:11:22:33:%02x:fe", idx)
+			macAddr := util.ParseMAC(portMac)
+			l2Port := bcm.NewL2Port(portNameMap.PortName, portNameMap.Port, opennsl.VLAN_ID_NONE, macAddr)
+			if err := l2Port.Create(); err != nil {
+				log.Errorf("Failed to create L2 port: %s", err)
+				return
+			}
+	
+			l2Ports[portNameMap.PortName] = l2Port
+			idx++
 		}
+	} else {
+		l3Ports := make(map[string]*bcm.L3Port)
+		var idx uint16 = 1
+		for _, portNameMap := range bcm.PortNames {
+			fmt.Println("Key:", portNameMap.Port, "Value:", portNameMap.PortName)
+			portMac := fmt.Sprintf("00:11:22:33:%02x:fe", idx)
+			macAddr := util.ParseMAC(portMac)
+			ipAddr := net.ParseIP(fmt.Sprintf("192.168.%d.1", idx))
+			l3Port := bcm.NewL3Port(portNameMap.PortName, portNameMap.Port, macAddr, ipAddr)
+			if err := l3Port.Create(); err != nil {
+				log.Errorf("Failed to create L3 interface: %s", err)
+				return
+			}
 
-		l3Intfs[portNameMap.PortName] = l3Intf
-		idx++
+			l3Ports[portNameMap.PortName] = l3Port
+			idx++
+		}
 	}
 
 	rx := bcm.NewRx()

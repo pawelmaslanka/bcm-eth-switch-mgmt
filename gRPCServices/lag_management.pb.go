@@ -49,39 +49,39 @@ func (RpcResult_Result) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_f7538dc41eccda59, []int{3, 0}
 }
 
-type LagIface struct {
+type LagIntf struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *LagIface) Reset()         { *m = LagIface{} }
-func (m *LagIface) String() string { return proto.CompactTextString(m) }
-func (*LagIface) ProtoMessage()    {}
-func (*LagIface) Descriptor() ([]byte, []int) {
+func (m *LagIntf) Reset()         { *m = LagIntf{} }
+func (m *LagIntf) String() string { return proto.CompactTextString(m) }
+func (*LagIntf) ProtoMessage()    {}
+func (*LagIntf) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f7538dc41eccda59, []int{0}
 }
 
-func (m *LagIface) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_LagIface.Unmarshal(m, b)
+func (m *LagIntf) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LagIntf.Unmarshal(m, b)
 }
-func (m *LagIface) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_LagIface.Marshal(b, m, deterministic)
+func (m *LagIntf) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LagIntf.Marshal(b, m, deterministic)
 }
-func (m *LagIface) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LagIface.Merge(m, src)
+func (m *LagIntf) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LagIntf.Merge(m, src)
 }
-func (m *LagIface) XXX_Size() int {
-	return xxx_messageInfo_LagIface.Size(m)
+func (m *LagIntf) XXX_Size() int {
+	return xxx_messageInfo_LagIntf.Size(m)
 }
-func (m *LagIface) XXX_DiscardUnknown() {
-	xxx_messageInfo_LagIface.DiscardUnknown(m)
+func (m *LagIntf) XXX_DiscardUnknown() {
+	xxx_messageInfo_LagIntf.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_LagIface proto.InternalMessageInfo
+var xxx_messageInfo_LagIntf proto.InternalMessageInfo
 
-func (m *LagIface) GetName() string {
+func (m *LagIntf) GetName() string {
 	if m != nil {
 		return m.Name
 	}
@@ -128,7 +128,7 @@ func (m *Port) GetName() string {
 }
 
 type LagMembers struct {
-	Iface                *LagIface `protobuf:"bytes,1,opt,name=iface,proto3" json:"iface,omitempty"`
+	Intf                *LagIntf `protobuf:"bytes,1,opt,name=iface,proto3" json:"iface,omitempty"`
 	Members              []*Port   `protobuf:"bytes,2,rep,name=members,proto3" json:"members,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
@@ -160,9 +160,9 @@ func (m *LagMembers) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LagMembers proto.InternalMessageInfo
 
-func (m *LagMembers) GetIface() *LagIface {
+func (m *LagMembers) GetIntf() *LagIntf {
 	if m != nil {
-		return m.Iface
+		return m.Intf
 	}
 	return nil
 }
@@ -215,7 +215,7 @@ func (m *RpcResult) GetResult() RpcResult_Result {
 
 func init() {
 	proto.RegisterEnum("OpenNos.Plugin.Lag.RpcResult_Result", RpcResult_Result_name, RpcResult_Result_value)
-	proto.RegisterType((*LagIface)(nil), "OpenNos.Plugin.Lag.LagIface")
+	proto.RegisterType((*LagIntf)(nil), "OpenNos.Plugin.Lag.LagIntf")
 	proto.RegisterType((*Port)(nil), "OpenNos.Plugin.Lag.Port")
 	proto.RegisterType((*LagMembers)(nil), "OpenNos.Plugin.Lag.LagMembers")
 	proto.RegisterType((*RpcResult)(nil), "OpenNos.Plugin.Lag.RpcResult")
@@ -257,7 +257,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type LagManagementClient interface {
-	CreateLag(ctx context.Context, in *LagIface, opts ...grpc.CallOption) (*RpcResult, error)
+	CreateLag(ctx context.Context, in *LagIntf, opts ...grpc.CallOption) (*RpcResult, error)
 	AddLagMembers(ctx context.Context, in *LagMembers, opts ...grpc.CallOption) (*RpcResult, error)
 }
 
@@ -269,7 +269,7 @@ func NewLagManagementClient(cc *grpc.ClientConn) LagManagementClient {
 	return &lagManagementClient{cc}
 }
 
-func (c *lagManagementClient) CreateLag(ctx context.Context, in *LagIface, opts ...grpc.CallOption) (*RpcResult, error) {
+func (c *lagManagementClient) CreateLag(ctx context.Context, in *LagIntf, opts ...grpc.CallOption) (*RpcResult, error) {
 	out := new(RpcResult)
 	err := c.cc.Invoke(ctx, "/OpenNos.Plugin.Lag.LagManagement/CreateLag", in, out, opts...)
 	if err != nil {
@@ -289,7 +289,7 @@ func (c *lagManagementClient) AddLagMembers(ctx context.Context, in *LagMembers,
 
 // LagManagementServer is the server API for LagManagement service.
 type LagManagementServer interface {
-	CreateLag(context.Context, *LagIface) (*RpcResult, error)
+	CreateLag(context.Context, *LagIntf) (*RpcResult, error)
 	AddLagMembers(context.Context, *LagMembers) (*RpcResult, error)
 }
 
@@ -297,7 +297,7 @@ type LagManagementServer interface {
 type UnimplementedLagManagementServer struct {
 }
 
-func (*UnimplementedLagManagementServer) CreateLag(ctx context.Context, req *LagIface) (*RpcResult, error) {
+func (*UnimplementedLagManagementServer) CreateLag(ctx context.Context, req *LagIntf) (*RpcResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLag not implemented")
 }
 func (*UnimplementedLagManagementServer) AddLagMembers(ctx context.Context, req *LagMembers) (*RpcResult, error) {
@@ -309,7 +309,7 @@ func RegisterLagManagementServer(s *grpc.Server, srv LagManagementServer) {
 }
 
 func _LagManagement_CreateLag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LagIface)
+	in := new(LagIntf)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -321,7 +321,7 @@ func _LagManagement_CreateLag_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/OpenNos.Plugin.Lag.LagManagement/CreateLag",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LagManagementServer).CreateLag(ctx, req.(*LagIface))
+		return srv.(LagManagementServer).CreateLag(ctx, req.(*LagIntf))
 	}
 	return interceptor(ctx, in, info, handler)
 }

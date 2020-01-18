@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package OpenNos.Plugin.Lag;
 
-message LagIface {
+message LagIntf {
     string name = 1;
 }
 
@@ -11,7 +11,7 @@ message Port {
 }
 
 message LagMembers {
-    LagIface iface = 1;
+    LagIntf iface = 1;
     repeated Port members = 2;
 }
 
@@ -25,6 +25,6 @@ message RpcResult {
 }
 
 service LagManagement {
-    rpc CreateLag (LagIface) returns (RpcResult) {}
+    rpc CreateLag (LagIntf) returns (RpcResult) {}
     rpc AddLagMembers (LagMembers) returns (RpcResult) {}
 }

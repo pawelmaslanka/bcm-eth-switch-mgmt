@@ -14,14 +14,14 @@ type Asic struct {
 type Switch struct {
 	asic      Asic
 	stg       opennsl.Stg
-	lagIfaces map[string]*LAG
+	lagIntfs map[string]*LAG
 }
 
 func NewSwitch() *Switch {
 	return &Switch{
 		asic:      Asic{unit: DEFAULT_ASIC_UNIT},
 		stg:       opennsl.Stg(1),
-		lagIfaces: make(map[string]*LAG),
+		lagIntfs: make(map[string]*LAG),
 	}
 }
 
