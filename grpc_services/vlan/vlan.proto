@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package OpenNos.EthSwitch.Vlan;
+
+message Interface {
+    string ifname = 1;
+}
+
+message NativeVlan {
+    Interface interface = 1;
+    uint32 vid = 2;
+}
+
+message VlanMgmtResult {
+    enum Result {
+        FAILED = 0;
+        SUCCESS = 1;
+    }
+
+    Result result = 1;
+}
+
+service VlanMgmt {
+    rpc SetNativeVlan (NativeVlan) returns (VlanMgmtResult) {}
+}
