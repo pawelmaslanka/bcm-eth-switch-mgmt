@@ -22,6 +22,7 @@ define BCM_ETH_SWITCH_MGMT_POST_RSYNC_HOOK
 	cp -rf ${GO_OPENNSL_DIR}/_gopath/pkg/* $(@D)/_gopath/pkg
 	mkdir -p $(@D)/_gopath/src/bcm-eth-switch-mgmt
 	mv $(@D)/switch $(@D)/_gopath/src/bcm-eth-switch-mgmt
+	mv $(@D)/grpc_services $(@D)/_gopath/src/bcm-eth-switch-mgmt/
 endef
 
 BCM_ETH_SWITCH_MGMT_POST_RSYNC_HOOKS += BCM_ETH_SWITCH_MGMT_POST_RSYNC_HOOK
