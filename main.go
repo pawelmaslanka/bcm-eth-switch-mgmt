@@ -99,6 +99,7 @@ func main() {
 	defer rx.Stop()
 	go bcm.HandleSTPRequest(sw)
 	go bcm.HandleLAGRequest(sw)
+	go bcm.HandleVlanMgmtRequest(sw)
 
 	if err := sal.DriverShell(); err != nil {
 		log.Errorf("Failed to exit from driver shell: %s", err)

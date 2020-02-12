@@ -3,91 +3,68 @@ package bcm
 import (
 	pb "bcm-eth-switch-mgmt/grpc_services/vlan"
 	"context"
-	"errors"
 	"fmt"
-	"strings"
+	"net"
 
 	"github.com/beluganos/go-opennsl/opennsl"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 const (
-	vlanMgmtPort = ":50056"
+	vlanMgmtTcpPort = ":50056"
 )
+
+type void struct{}
 
 type vlanMgmtReq struct {
 	pb.UnimplementedVlanMgmtServer
 	sw *Switch
+	portsByVlan map[uint16]map[string]void
 }
 
 func (vlanMgmt *vlanMgmtReq) SetNativeVlan(ctx context.Context, req *pb.NativeVlan) (*pb.VlanMgmtResult, error) {
-	ifname := req.GetInterface().GetIfname()
-	log.Infof("Set native VLAN %d on interface %s", req.GetVid(), ifname)
-	var portNames []string
-	var portIdx uint16
+	// Sanity check for validation of ports which will be added to VLAN 
+	var bcmPorts []opennsl.Port = make([]opennsl.Port, len(req.GetPorts()))
+	var bcmPortIdx uint16
 	var exists bool
-	if strings.Contains(ifname, "team") {
-		log.Printf("Requested set STP state on LAG %s", ifname)
-		var lag *LAG
-		if lag, exists = stpMgmt.sw.lagIntfs[ifname]; !exists {
-			errMsg := fmt.Sprintf("LAG %s does not exist", ifname)
+	for _, port := range req.GetPorts() {
+		log.Infof("Set native VLAN on port %s", port.GetName())
+		if bcmPortIdx, exists = NamePortIdxMap[port.GetName()]; !exists {
+			errMsg := fmt.Sprintf("Port %s does not exist", port.GetName())
 			log.Errorf(errMsg)
-			return &pb.StpResult{Result: pb.StpResult_FAILED}, fmt.Errorf(errMsg)
+			return &pb.VlanMgmtResult{Result: pb.VlanMgmtResult_FAILED}, fmt.Errorf(errMsg)
 		}
-
-		log.Printf("LAG %s has %d members", ifname, len(lag.members))
-		portNames = make([]string, len(lag.members))
-		i := 0
-		for portName := range lag.members {
-			log.Printf("Adding port %s from LAG %s", portName, ifname)
-			portNames[i] = portName
-			i++
-		}
-	} else {
-		portNames = []string{ifname}
+		
+		bcmPorts = append(bcmPorts, PortNames[bcmPortIdx].Port)
 	}
 
-	log.Printf("There are %d port names", len(portNames))
-	for _, portName := range portNames {
-		log.Printf("Setting STP state on port %s", portName)
-		if portIdx, exists = NamePortIdxMap[portName]; !exists {
-			errMsg := fmt.Sprintf("Port %s does not exist", portName)
+	// Native VLAN doesn't have to exist
+	// if _, exists := vlanMgmt.portsByVlan[req.GetVid()]; !exists {
+		
+	// }
+
+	log.Infof("Set native VLAN %d on the following ports", req.GetVid())
+	var vid opennsl.Vlan = opennsl.Vlan(req.GetVid())
+	for _, bcmPort := range bcmPorts {
+		if err := bcmPort.UntaggedVlanSet(vlanMgmt.sw.asic.unit, vid); err != nil {
+			errMsg := fmt.Sprintf("Failed to set native VLAN %d on port %d", vid, bcmPort)
 			log.Errorf(errMsg)
-			return &pb.StpResult{Result: pb.StpResult_FAILED}, fmt.Errorf(errMsg)
-		}
-
-		port := PortNames[portIdx].Port
-
-		var stgStpState opennsl.StgStp
-		switch st := state.GetState(); st {
-		case pb.StpState_DISABLED:
-			stgStpState = opennsl.STG_STP_DISABLE
-		case pb.StpState_BLOCKING:
-			stgStpState = opennsl.STG_STP_BLOCK
-		case pb.StpState_LISTENING:
-			stgStpState = opennsl.STG_STP_LISTEN
-		case pb.StpState_LEARNING:
-			stgStpState = opennsl.STG_STP_LEARN
-		case pb.StpState_FORWARDING:
-			stgStpState = opennsl.STG_STP_FORWARD
-		default:
-			log.Warnf("STG STP state %d not recognized", st)
-			return &pb.StpResult{Result: pb.StpResult_FAILED}, errors.New(fmt.Sprintf("Invalid STG STP state %s for port %s", pb.StpState_State_name[int32(st)], portName))
-		}
-
-		var stg opennsl.Stg
-		var err error
-		if stg, err = opennsl.StpDefaultGet(DEFAULT_ASIC_UNIT); err != nil {
-			log.Errorf("Failed to get default STG STP")
-			return &pb.StpResult{Result: pb.StpResult_FAILED}, errors.New("Failed to get default STG STP")
-		}
-
-		if err = stg.StpSet(stpMgmt.sw.asic.unit, port, stgStpState); err != nil {
-			log.Errorf("Failed to set STG STP state %d on port %s (%d)", stgStpState, portName, port)
-			return &pb.StpResult{Result: pb.StpResult_FAILED}, errors.New(fmt.Sprintf("Failed to set STG STP state %s on port %s",
-				pb.StpState_State_name[int32(state.GetState())], portName))
+			return &pb.VlanMgmtResult{Result: pb.VlanMgmtResult_FAILED}, fmt.Errorf(errMsg)
 		}
 	}
 
-	return &pb.StpResult{Result: pb.StpResult_SUCCESS}, nil
+	return &pb.VlanMgmtResult{Result: pb.VlanMgmtResult_FAILED}, nil
+}
+
+func HandleVlanMgmtRequest(sw *Switch) {
+	lis, err := net.Listen("tcp", vlanMgmtTcpPort)
+	if err != nil {
+		log.Fatalf("Failed to listen on TCP port %d for VLAN management request: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterVlanMgmtServer(s, &vlanMgmtReq{sw: sw})
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

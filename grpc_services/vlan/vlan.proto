@@ -2,13 +2,13 @@ syntax = "proto3";
 
 package OpenNos.EthSwitch.Vlan;
 
-message Interface {
-    string ifname = 1;
+message Port {
+    string name = 1;
 }
 
 message NativeVlan {
-    Interface interface = 1;
-    uint32 vid = 2;
+    uint32 vid = 1;
+    repeated Port ports = 2;
 }
 
 message VlanMgmtResult {
