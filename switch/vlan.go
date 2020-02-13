@@ -19,29 +19,30 @@ type void struct{}
 
 type vlanMgmtReq struct {
 	pb.UnimplementedVlanMgmtServer
-	sw *Switch
+	sw          *Switch
 	portsByVlan map[uint16]map[string]void
 }
 
 func (vlanMgmt *vlanMgmtReq) SetNativeVlan(ctx context.Context, req *pb.NativeVlan) (*pb.VlanMgmtResult, error) {
-	// Sanity check for validation of ports which will be added to VLAN 
-	var bcmPorts []opennsl.Port = make([]opennsl.Port, len(req.GetPorts()))
-	var bcmPortIdx uint16
-	var exists bool
-	for _, port := range req.GetPorts() {
-		log.Infof("Set native VLAN on port %s", port.GetName())
-		if bcmPortIdx, exists = NamePortIdxMap[port.GetName()]; !exists {
-			errMsg := fmt.Sprintf("Port %s does not exist", port.GetName())
+	// Sanity check for validation of ports which will be added to VLAN
+	ports := req.GetPorts()
+	bcmPorts := make([]opennsl.Port, len(ports))
+	for i := 0; i < len(ports); i++ {
+		portName := ports[i].GetName()
+		log.Infof("Set native VLAN on port %s", portName)
+		bcmPortIdx, exists := NamePortIdxMap[portName]
+		if !exists {
+			errMsg := fmt.Sprintf("Port %s does not exist", portName)
 			log.Errorf(errMsg)
 			return &pb.VlanMgmtResult{Result: pb.VlanMgmtResult_FAILED}, fmt.Errorf(errMsg)
 		}
-		
-		bcmPorts = append(bcmPorts, PortNames[bcmPortIdx].Port)
+
+		bcmPorts[i] = PortNames[bcmPortIdx].Port
 	}
 
 	// Native VLAN doesn't have to exist
 	// if _, exists := vlanMgmt.portsByVlan[req.GetVid()]; !exists {
-		
+
 	// }
 
 	log.Infof("Set native VLAN %d on the following ports", req.GetVid())
@@ -54,7 +55,7 @@ func (vlanMgmt *vlanMgmtReq) SetNativeVlan(ctx context.Context, req *pb.NativeVl
 		}
 	}
 
-	return &pb.VlanMgmtResult{Result: pb.VlanMgmtResult_FAILED}, nil
+	return &pb.VlanMgmtResult{Result: pb.VlanMgmtResult_SUCCESS}, nil
 }
 
 func HandleVlanMgmtRequest(sw *Switch) {
