@@ -45,7 +45,7 @@ func (vlanMgmt *vlanMgmtReq) SetNativeVlan(ctx context.Context, req *pb.NativeVl
 
 	// }
 
-	log.Infof("Set native VLAN %d on the following ports", req.GetVid())
+	log.Infof("Set native VLAN %d on the above list of ports", req.GetVid())
 	var vid opennsl.Vlan = opennsl.Vlan(req.GetVid())
 	for _, bcmPort := range bcmPorts {
 		if err := bcmPort.UntaggedVlanSet(vlanMgmt.sw.asic.unit, vid); err != nil {
