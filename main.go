@@ -67,7 +67,7 @@ func main() {
 				log.Errorf("Failed to create L2 port: %s", err)
 				return
 			}
-	
+
 			l2Ports[portNameMap.PortName] = l2Port
 			idx++
 		}
@@ -100,6 +100,7 @@ func main() {
 	go bcm.HandleSTPRequest(sw)
 	go bcm.HandleLAGRequest(sw)
 	go bcm.HandleVlanMgmtRequest(sw)
+	go bcm.HandleRequestOfL3RouteMgmtRpc(sw)
 
 	if err := sal.DriverShell(); err != nil {
 		log.Errorf("Failed to exit from driver shell: %s", err)

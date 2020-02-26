@@ -53,6 +53,10 @@ func (stpMgmt *stpRequestMgmt) SetInterfaceState(ctx context.Context, state *pb.
 	}
 
 	log.Printf("There are %d port names", len(portNames))
+
+	stpMgmt.sw.access.Lock()
+	defer stpMgmt.sw.access.Unlock()
+
 	for _, portName := range portNames {
 		log.Printf("Setting STP state on port %s", portName)
 		if portIdx, exists = NamePortIdxMap[portName]; !exists {
@@ -100,7 +104,7 @@ func (stpMgmt *stpRequestMgmt) SetInterfaceState(ctx context.Context, state *pb.
 // SayHello implements helloworld.GreeterServer
 func (stpMgmt *stpRequestMgmt) FlushFdb(ctx context.Context, iface *pb.StpInterface) (*pb.StpResult, error) {
 	ifname := iface.GetIfname()
-	log.Infof("FlushFdb on ifname %s",ifname )
+	log.Infof("FlushFdb on ifname %s", ifname)
 	var portNames []string
 	var portIdx uint16
 	var exists bool
@@ -125,6 +129,9 @@ func (stpMgmt *stpRequestMgmt) FlushFdb(ctx context.Context, iface *pb.StpInterf
 		portNames = []string{ifname}
 	}
 
+	stpMgmt.sw.access.Lock()
+	defer stpMgmt.sw.access.Unlock()
+
 	for _, portName := range portNames {
 		log.Printf("Flushing FDB on port %s", portName)
 		if portIdx, exists = NamePortIdxMap[portName]; !exists {
@@ -147,6 +154,10 @@ func (stpMgmt *stpRequestMgmt) FlushFdb(ctx context.Context, iface *pb.StpInterf
 
 func (stpMgmt *stpRequestMgmt) SetAgeingTime(ctx context.Context, age *pb.StpAgeingTime) (*pb.StpResult, error) {
 	log.Infof("SetAgeingTime for %u", age.AgeingTime)
+
+	stpMgmt.sw.access.Lock()
+	defer stpMgmt.sw.access.Unlock()
+
 	if err := opennsl.L2AddrAgeTimerSet(DEFAULT_ASIC_UNIT, int(age.AgeingTime)); err != nil {
 		log.Errorf("Failed to set ageing of L2 address (%u)", age.AgeingTime)
 		return &pb.StpResult{Result: pb.StpResult_FAILED}, errors.New(fmt.Sprintf("Failed to set ageing of L2 address (%u)", age.AgeingTime))

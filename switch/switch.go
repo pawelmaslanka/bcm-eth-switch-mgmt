@@ -1,9 +1,13 @@
 package bcm
 
 import (
+	"sync"
+
 	"github.com/beluganos/go-opennsl/opennsl"
 	log "github.com/sirupsen/logrus"
 )
+
+type void struct{}
 
 // Asic represents per Broadcom ASIC chip parameters.
 type Asic struct {
@@ -12,15 +16,17 @@ type Asic struct {
 
 // Switch represents configured parameters in Broadcom network switch layer.
 type Switch struct {
-	asic      Asic
-	stg       opennsl.Stg
+	access   sync.Mutex
+	asic     Asic
+	stg      opennsl.Stg
 	lagIntfs map[string]*LAG
 }
 
 func NewSwitch() *Switch {
 	return &Switch{
-		asic:      Asic{unit: DEFAULT_ASIC_UNIT},
-		stg:       opennsl.Stg(1),
+		access:   sync.Mutex{},
+		asic:     Asic{unit: DEFAULT_ASIC_UNIT},
+		stg:      opennsl.Stg(1),
 		lagIntfs: make(map[string]*LAG),
 	}
 }
@@ -177,6 +183,9 @@ var NamePortIdxMap = map[string]uint16{
 // }
 
 func (sw *Switch) EnableFeatures() error {
+	sw.access.Lock()
+	defer sw.access.Unlock()
+
 	if err := opennsl.SwitchControlsSet(
 		sw.asic.unit,
 		opennsl.SwitchL3EgressMode.Arg(opennsl.TRUE),

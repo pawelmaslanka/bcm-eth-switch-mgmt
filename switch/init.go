@@ -12,6 +12,9 @@ import (
 func (sw *Switch) Init() error {
 	log.SetLevel(log.DebugLevel)
 
+	sw.access.Lock()
+	defer sw.access.Unlock()
+
 	if err := sal.DriverInit(); err != nil {
 		log.Errorf("Failed to initialize BCM network switch driver: %s", err)
 		return err

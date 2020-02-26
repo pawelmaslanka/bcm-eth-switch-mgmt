@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package OpenNos.EthSwitch.L3.Mgmt;
+
+message Network4 {
+    string cidr4 = 1;
+}
+
+message NextHop4 {
+    string ip4 = 1;
+}
+
+message AddRoute4Request {
+    Network4 network = 1;
+    NextHop4 next_hop = 2;
+}
+
+message WithdrawRoute4Request {
+    Network4 network = 1;
+}
+
+message RouteMgmtResult {
+    enum Result {
+        FAILED = 0;
+        SUCCESS = 1;
+    }
+
+    Result result = 1;
+}
+
+service RouteMgmt {
+    rpc AddRoute4 (AddRoute4Request) returns (RouteMgmtResult) {}
+    rpc WithdrawRoute4 (WithdrawRoute4Request) returns (RouteMgmtResult) {}
+}

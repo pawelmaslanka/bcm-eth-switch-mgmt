@@ -41,6 +41,9 @@ func (lagMgmt *lagMgmtRequest) CreateLag(ctx context.Context, req *pb.LagIntf) (
 		return &pb.RpcResult{Result: pb.RpcResult_SUCCESS}, nil
 	}
 
+	lagMgmt.sw.access.Lock()
+	defer lagMgmt.sw.access.Unlock()
+
 	trunk, err := opennsl.TrunkCreate(lagMgmt.sw.asic.unit, opennsl.NewTrunkFlags(opennsl.TRUNK_FLAG_NONE))
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to create LAG %s: %s", lagIfname, err)
@@ -96,6 +99,9 @@ func (lagMgmt *lagMgmtRequest) AddLagMembers(ctx context.Context, req *pb.LagMem
 		log.Errorf(errMsg)
 		return &pb.RpcResult{Result: pb.RpcResult_FAILED}, fmt.Errorf(errMsg)
 	}
+
+	lagMgmt.sw.access.Lock()
+	defer lagMgmt.sw.access.Unlock()
 
 	for _, member := range portMembers {
 		portName := member.GetName()

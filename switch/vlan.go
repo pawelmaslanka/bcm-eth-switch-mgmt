@@ -15,8 +15,6 @@ const (
 	vlanMgmtTcpPort = ":50056"
 )
 
-type void struct{}
-
 type vlanMgmtReq struct {
 	pb.UnimplementedVlanMgmtServer
 	sw          *Switch
@@ -47,6 +45,10 @@ func (vlanMgmt *vlanMgmtReq) SetNativeVlan(ctx context.Context, req *pb.NativeVl
 
 	log.Infof("Set native VLAN %d on the above list of ports", req.GetVid())
 	var vid opennsl.Vlan = opennsl.Vlan(req.GetVid())
+
+	vlanMgmt.sw.access.Lock()
+	defer vlanMgmt.sw.access.Unlock()
+
 	for _, bcmPort := range bcmPorts {
 		if err := bcmPort.UntaggedVlanSet(vlanMgmt.sw.asic.unit, vid); err != nil {
 			errMsg := fmt.Sprintf("Failed to set native VLAN %d on port %d", vid, bcmPort)

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package OpenNos.EthSwitch.Debug.Asic;
+
+message ShellCommandRequest {
+    string cmd = 1;
+}
+
+message ShellResponse {
+    enum Result {
+        FAILED = 0;
+        SUCCESS = 1;
+    }
+
+    Result result = 1;
+    string output = 2;
+}
+
+service DebugAsic {
+    rpc ProcessShellCommand (ShellCommandRequest) returns (ShellResponse) {}
+}
